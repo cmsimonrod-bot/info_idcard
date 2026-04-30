@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Datos con Fetch</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; background-color: #f0f2f5; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h2 { color: #1a73e8; border-bottom: 2px solid #e8eaed; padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { text-align: left; padding: 15px; border-bottom: 1px solid #eee; }
+        th { background-color: #f8f9fa; color: #5f6368; text-transform: uppercase; font-size: 0.85rem; }
+        tr:hover { background-color: #f1f3f4; }
+        .status { padding: 4px 8px; border-radius: 4px; font-size: 0.9rem; font-weight: bold; }
+        .activo { background-color: #e6f4ea; color: #1e8e3e; }
+        .inactivo { background-color: #fce8e6; color: #d93025; }
+        #mensaje { color: #666; font-style: italic; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Panel de Control de Personal</h2>
+    <div id="mensaje">Cargando datos desde el servidor...</div>
+
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>ID</th>
+                <th>Departamento</th>
+                <th>Estatus</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Los datos se insertarán aquí -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Configuración: Nombre o ruta de tu archivo en el servidor
+	const URL_ARCHIVO = 'datos.txt'; 
+
+    async function cargarDatos() {
+        const cuerpoTabla = document.querySelector('#dataTable tbody');
+        const mensajeDiv = document.getElementById('mensaje');
+
+        try {
+            // 1. Llamada fetch para obtener el archivo
+            const respuesta = await fetch(URL_ARCHIVO);
+            
+            if (!respuesta.ok) {
+                throw new Error('No se pudo encontrar el archivo datos.txt');
+            }
+
+            // 2. Convertir la respuesta a texto plano
+            const contenido = await respuesta.text();
+
+            // 3. Procesar las líneas
+            const lineas = contenido.split('\n');
+            cuerpoTabla.innerHTML = ''; 
+
+            lineas.forEach(linea => {
+                const datos = linea.trim().split(',');
+                
+                if (datos.length >= 4) {
+                    const [nombre, id, depto, estatus] = datos;
+                    const fila = document.createElement('tr');
+                    
+                    const claseEstatus = estatus.toLowerCase().trim() === 'activo' ? 'activo' : 'inactivo';
+
+                    fila.innerHTML = `
+                        <td>${nombre}</td>
+                        <td><strong>${id}</strong></td>
+                        <td>${depto}</td>
+                        <td><span class="status ${claseEstatus}">${estatus.toUpperCase()}</span></td>
+                    `;
+                    cuerpoTabla.appendChild(fila);
+                }
+            });
+
+            mensajeDiv.innerText = "Datos actualizados correctamente.";
+
+        } catch (error) {
+            console.error('Error:', error);
+            mensajeDiv.innerHTML = `<span style="color:red;">Error: ${error.message}</span>`;
+        }
+    }
+
+    // Ejecutar la función al cargar la página
+    window.onload = cargarDatos;
+</script>
+
+</body>
+</html>
